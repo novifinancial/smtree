@@ -211,3 +211,8 @@ fn main() {
     assert!(deserialized.verify_random_sampling_proof(&tree.get_root()));
 }
 ```
+
+License
+-------
+
+This project is [MIT licensed](./LICENSE).
