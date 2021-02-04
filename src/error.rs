@@ -1,3 +1,8 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 //! This module provides definitions of errors might be returned by this library.
 
 use crate::index::MAX_HEIGHT;

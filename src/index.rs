@@ -1,3 +1,8 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 //! This module provides definitions of tree index in an SMT,
 //! and operations to get the index of the parent/sibling/child/etc. of a given tree node.
 
