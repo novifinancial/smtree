@@ -1,3 +1,8 @@
+// Copyright (c) Facebook, Inc. and its affiliates.
+//
+// This source code is licensed under the MIT license found in the
+// LICENSE file in the root directory of this source tree.
+
 //! This module provides definitions of the tree node and the paddable sparse Merkle tree,
 //! together with methods of tree generation/update, Merkle proof generation, and random sampling.
 
