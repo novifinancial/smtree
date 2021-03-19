@@ -8,6 +8,7 @@
 
 use std::fmt::Debug;
 
+use crate::pad_secret::{Secret, ALL_ZEROS_SECRET};
 use crate::{
     error::{DecodingError, TreeError},
     index::{TreeIndex, MAX_HEIGHT},
@@ -158,7 +159,7 @@ where
             panic!("{}", DecodingError::ExceedMaxHeight);
         }
         let mut root_node = TreeNode::<P>::new(NodeType::Padding);
-        root_node.set_value(P::padding(&TreeIndex::zero(0)));
+        root_node.set_value(P::padding(&TreeIndex::zero(0), &ALL_ZEROS_SECRET));
         SparseMerkleTree {
             height,
             root: 0,
@@ -416,7 +417,11 @@ where
     ///
     /// If there are duplicated indexes in the list,
     /// return [TreeError::IndexDuplicated](../error/enum.TreeError.html#variant.IndexDuplicated).
-    pub fn construct_smt_nodes(&mut self, list: &[(TreeIndex, P)]) -> Option<TreeError> {
+    pub fn construct_smt_nodes(
+        &mut self,
+        list: &[(TreeIndex, P)],
+        secret: &Secret,
+    ) -> Option<TreeError> {
         // Check the validity of the input list.
         if let Some(x) = self.check_index_list_validity(list) {
             return Some(x);
@@ -489,14 +494,14 @@ where
                     } else {
                         // When the sibling doesn't exist, generate a new padding node.
                         sibling_link = self.add_node(NodeType::Padding);
-                        self.nodes[sibling_link].set_value(Paddable::padding(&sibling_idx));
+                        self.nodes[sibling_link].set_value(Paddable::padding(&sibling_idx, secret));
                     }
                     self.set_children(&mut parent, node_link, sibling_link);
                 } else {
                     // When the current node is the right node of its parent,
                     // its sibling doesn't exist yet, so need to generate a new padding node.
                     sibling_link = self.add_node(NodeType::Padding);
-                    self.nodes[sibling_link].set_value(Paddable::padding(&sibling_idx));
+                    self.nodes[sibling_link].set_value(Paddable::padding(&sibling_idx, secret));
                     self.set_children(&mut parent, sibling_link, node_link);
                 }
 
@@ -519,8 +524,8 @@ where
     /// Build SMT from the input list of sorted index-value pairs, index being the sorting key.
     ///
     /// Panics if the input list is not valid.
-    pub fn build(&mut self, list: &[(TreeIndex, P)]) {
-        if let Some(x) = self.construct_smt_nodes(list) {
+    pub fn build(&mut self, list: &[(TreeIndex, P)], secret: &Secret) {
+        if let Some(x) = self.construct_smt_nodes(list, secret) {
             panic!("{}", x);
         }
     }
@@ -563,7 +568,7 @@ where
     /// Update the tree by modifying the leaf node of a certain tree index.
     ///
     /// Panics if the height of the input index doesn't match with that of the tree.
-    pub fn update(&mut self, key: &TreeIndex, value: P) {
+    pub fn update(&mut self, key: &TreeIndex, value: P, secret: &Secret) {
         // Panic if the height of the input tree index doesn't match with that of the tree.
         if key.get_height() != self.height {
             panic!("{}", TreeError::HeightNotMatch)
@@ -604,7 +609,7 @@ where
                         && self.nodes[sibling].get_rch().is_none()
                     {
                         self.nodes[sibling].set_node_type(NodeType::Padding);
-                        self.nodes[sibling].set_value(Paddable::padding(&sibling_idx));
+                        self.nodes[sibling].set_value(Paddable::padding(&sibling_idx, secret));
                     }
                 }
             }
@@ -674,7 +679,7 @@ where
         for index in list {
             list_for_building.push((*index, Nil));
         }
-        if let Some(x) = proof_tree.construct_smt_nodes(&list_for_building) {
+        if let Some(x) = proof_tree.construct_smt_nodes(&list_for_building, &ALL_ZEROS_SECRET) {
             panic!("{}", x);
         }
 

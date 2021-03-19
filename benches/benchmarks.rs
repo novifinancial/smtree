@@ -10,9 +10,10 @@ use std::time::Instant;
 
 use criterion::{criterion_group, criterion_main, Criterion};
 
+use smtree::pad_secret::ALL_ZEROS_SECRET;
 use smtree::{
     index::TreeIndex,
-    node_template,
+    node_template::{HashNodeSmt, SumNodeSmt},
     traits::{Mergeable, Paddable, ProofExtractable, Rand, Serializable, TypeName},
     tree::SparseMerkleTree,
 };
@@ -59,7 +60,7 @@ pub fn bench_build<
                 println!("Start!");
                 let time = Instant::now();
                 let mut tree = SMT::new(TREE_HEIGHT);
-                tree.build(&list);
+                tree.build(&list, &ALL_ZEROS_SECRET);
                 println!("Finish in {:?} ms", time.elapsed().as_millis());
             })
         },
@@ -105,7 +106,7 @@ pub fn bench_update<
                 let time = Instant::now();
                 let mut tree = SMT::new(TREE_HEIGHT);
                 for item in list.iter() {
-                    tree.update(&item.0, item.1.clone());
+                    tree.update(&item.0, item.1.clone(), &ALL_ZEROS_SECRET);
                 }
                 println!("Finish in {:?} ms", time.elapsed().as_millis());
             })
@@ -117,10 +118,10 @@ criterion_group! {
     name = benches;
     config = Criterion::default().sample_size(10);
     targets =
-              bench_build<node_template::SumNodeSMT>,
-              bench_build<node_template::HashNodeSMT::<blake3::Hasher>>,
-              bench_build<node_template::HashNodeSMT<blake2::Blake2b>>,
-              bench_build<node_template::HashNodeSMT<sha2::Sha256>>,
-              bench_build<node_template::HashNodeSMT<sha3::Sha3_256>>
+              bench_build<SumNodeSmt>,
+              bench_build<HashNodeSmt::<blake3::Hasher>>,
+              bench_build<HashNodeSmt<blake2::Blake2b>>,
+              bench_build<HashNodeSmt<sha2::Sha256>>,
+              bench_build<HashNodeSmt<sha3::Sha3_256>>
 }
 criterion_main!(benches);

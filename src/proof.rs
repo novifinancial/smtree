@@ -8,6 +8,7 @@
 
 use std::fmt::Debug;
 
+use crate::pad_secret::{Secret, ALL_ZEROS_SECRET};
 use crate::{
     error::DecodingError,
     index::TreeIndex,
@@ -160,7 +161,7 @@ where
         for index in &self.indexes {
             list_for_building.push((*index, Nil));
         }
-        if let Some(_x) = proof_tree.construct_smt_nodes(&list_for_building) {
+        if let Some(_x) = proof_tree.construct_smt_nodes(&list_for_building, &ALL_ZEROS_SECRET) {
             return false;
         }
 
@@ -512,7 +513,7 @@ where
     type ProofNodeType = V::ProofNode;
     type TreeStruct = SparseMerkleTree<V>;
 
-    fn random_sampling(tree: &Self::TreeStruct, idx: &TreeIndex) -> Self {
+    fn random_sampling(tree: &Self::TreeStruct, idx: &TreeIndex, secret: &Secret) -> Self {
         // Fetch the lowest ancestor of the sampled index in the tree.
         let (ancestor, ancestor_idx) = tree.get_closest_ancestor_ref_index(idx);
 
@@ -557,7 +558,7 @@ where
                 padding_proofs.push(
                     tree.get_node_by_ref(tree.get_root_ref())
                         .get_value()
-                        .prove_padding_node(&TreeIndex::zero(0)),
+                        .prove_padding_node(&TreeIndex::zero(0), secret),
                 );
             }
             1 => {
@@ -586,6 +587,7 @@ where
                     &mut padding_proofs,
                     refs,
                     padding_refs,
+                    secret,
                 )
             }
             _ => {
@@ -605,6 +607,7 @@ where
                     &mut padding_proofs,
                     refs,
                     padding_refs,
+                    secret,
                 )
             }
         }
@@ -730,12 +733,13 @@ where
         padding_proofs: &mut Vec<<V as PaddingProvable>::PaddingProof>,
         refs: Vec<usize>,
         padding_refs: Vec<(TreeIndex, usize)>,
+        secret: &Secret,
     ) {
         for (index, item) in padding_refs {
             padding_proofs.push(
                 tree.get_node_by_ref(refs[refs.len() - 1 - item])
                     .get_value()
-                    .prove_padding_node(&index),
+                    .prove_padding_node(&index, secret),
             );
         }
     }
