@@ -3,11 +3,14 @@
 // This source code is licensed under the MIT license found in the
 // LICENSE file in the root directory of this source tree.
 
+//! Various utility functions.
+
 use std::collections::BTreeSet;
 use std::collections::HashSet;
 use std::fmt::Debug;
 use std::mem;
 
+use crate::pad_secret::Secret;
 use crate::{
     error::DecodingError,
     index::{TreeIndex, MAX_HEIGHT},
@@ -18,6 +21,7 @@ use crate::{
 const BYTE_SIZE: usize = 8;
 const BYTE_NUM: usize = MAX_HEIGHT / BYTE_SIZE;
 
+/// A Nil SMT node.
 #[derive(Default, Clone, Debug)]
 pub struct Nil;
 
@@ -36,7 +40,7 @@ impl Mergeable for Nil {
 }
 
 impl Paddable for Nil {
-    fn padding(_idx: &TreeIndex) -> Nil {
+    fn padding(_idx: &TreeIndex, _secret: &Secret) -> Nil {
         Nil
     }
 }

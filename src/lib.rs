@@ -8,6 +8,7 @@
 pub mod error;
 pub mod index;
 pub mod node_template;
+pub mod pad_secret;
 pub mod proof;
 pub mod traits;
 pub mod tree;

@@ -6,6 +6,8 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
+use crate::node_template::{HashNodeSmt, SumNodeSmt};
+use crate::pad_secret::ALL_ZEROS_SECRET;
 use crate::{
     index::{TreeIndex, MAX_HEIGHT},
     node_template,
@@ -36,27 +38,28 @@ fn test_index_exceed_max_height() {
 #[test]
 #[should_panic]
 fn test_tree_exceed_max_height() {
-    let _tree: SMT<node_template::SumNodeSMT> = SMT::new(MAX_HEIGHT + 1);
+    let _tree: SMT<SumNodeSmt> = SMT::new(MAX_HEIGHT + 1);
 }
 
 #[test]
 fn test_padding_provable() {
     let mut idx = TreeIndex::zero(256);
+    let secret = &ALL_ZEROS_SECRET;
     for _i in 0..1000 {
         idx.randomize();
-        let sum = node_template::SumNodeSMT::padding(&idx);
-        assert!(node_template::SumNodeSMT::verify_padding_node(
+        let sum = SumNodeSmt::padding(&idx, secret);
+        assert!(SumNodeSmt::verify_padding_node(
             &sum.get_proof_node(),
-            &sum.prove_padding_node(&idx),
+            &sum.prove_padding_node(&idx, secret),
             &idx
         ));
 
-        let node = node_template::HashNodeSMT::<blake3::Hasher>::padding(&idx);
+        let node = HashNodeSmt::<blake3::Hasher>::padding(&idx, secret);
         assert!(
-            node_template::HashNodeSMT::<blake3::Hasher>::verify_padding_node(
+            node_template::HashNodeSmt::<blake3::Hasher>::verify_padding_node(
                 &node.get_proof_node(),
-                &node.prove_padding_node(&idx),
-                &idx
+                &node.prove_padding_node(&idx, &secret),
+                &idx,
             )
         );
     }
@@ -78,14 +81,15 @@ where
     <P as PaddingProvable>::PaddingProof: Clone + Default + Eq + Serializable,
 {
     fn test_building_smt(list: &[(TreeIndex, P)]) -> SMT<P> {
+        let secret = &ALL_ZEROS_SECRET;
         // Build the SMT from a list.
         let mut build_tree = SMT::new(TREE_HEIGHT);
-        build_tree.build(&list);
+        build_tree.build(&list, secret);
 
         // Build the SMT by updating elements in the list one by one.
         let mut update_tree = SMT::new(TREE_HEIGHT);
         for item in list.iter() {
-            update_tree.update(&item.0, item.1.clone());
+            update_tree.update(&item.0, item.1.clone(), secret);
         }
 
         // The roots of two SMT should be the same.
@@ -157,13 +161,16 @@ where
     }
 
     fn random_sampling(tree: &SMT<P>, idx: &TreeIndex) -> bool {
-        let proof = RandomSamplingProof::<P>::random_sampling(tree, idx);
+        let secret = &ALL_ZEROS_SECRET;
+
+        let proof = RandomSamplingProof::<P>::random_sampling(tree, idx, secret);
         let serialized = proof.serialize();
         let deserialized = RandomSamplingProof::<P>::deserialize(&serialized).unwrap();
         deserialized.verify_random_sampling_proof(&tree.get_root())
     }
 
     fn test_random_sampling(list: &[(TreeIndex, P)], tree: &SMT<P>) {
+        let secret = &ALL_ZEROS_SECRET;
         // Test random sampling.
 
         // When the index looked up exists.
@@ -179,7 +186,7 @@ where
         let index = list[0].0.get_left_index();
         if let Some(index) = index {
             assert!(Tester::<P>::random_sampling(tree, &index));
-            let proof = RandomSamplingProof::<P>::random_sampling(tree, &index);
+            let proof = RandomSamplingProof::<P>::random_sampling(tree, &index, secret);
             assert_eq!(proof.get_merkle_proof().get_indexes().len(), 1);
             assert_eq!(proof.get_merkle_proof().get_indexes()[0], list[0].0);
         }
@@ -188,7 +195,7 @@ where
         let index = list[list.len() - 1].0.get_right_index();
         if let Some(index) = index {
             assert!(Tester::<P>::random_sampling(tree, &index));
-            let proof = RandomSamplingProof::<P>::random_sampling(tree, &index);
+            let proof = RandomSamplingProof::<P>::random_sampling(tree, &index, secret);
             assert_eq!(proof.get_merkle_proof().get_indexes().len(), 1);
             assert_eq!(
                 proof.get_merkle_proof().get_indexes()[0],
@@ -201,7 +208,7 @@ where
             let index = list[i].0.get_left_index().unwrap();
             if index > list[i - 1].0 {
                 assert!(Tester::<P>::random_sampling(tree, &index));
-                let proof = RandomSamplingProof::<P>::random_sampling(tree, &index);
+                let proof = RandomSamplingProof::<P>::random_sampling(tree, &index, secret);
                 assert_eq!(proof.get_merkle_proof().get_indexes().len(), 2);
                 assert_eq!(proof.get_merkle_proof().get_indexes()[0], list[i - 1].0);
                 assert_eq!(proof.get_merkle_proof().get_indexes()[1], list[i].0);
@@ -210,7 +217,7 @@ where
             let index = list[i - 1].0.get_right_index().unwrap();
             if index < list[i].0 {
                 assert!(Tester::<P>::random_sampling(tree, &index));
-                let proof = RandomSamplingProof::<P>::random_sampling(tree, &index);
+                let proof = RandomSamplingProof::<P>::random_sampling(tree, &index, secret);
                 assert_eq!(proof.get_merkle_proof().get_indexes().len(), 2);
                 assert_eq!(proof.get_merkle_proof().get_indexes()[0], list[i - 1].0);
                 assert_eq!(proof.get_merkle_proof().get_indexes()[1], list[i].0);
@@ -241,9 +248,9 @@ where
 
 #[test]
 fn test_smt() {
-    Tester::<node_template::SumNodeSMT>::test();
-    Tester::<node_template::HashNodeSMT<blake3::Hasher>>::test();
-    Tester::<node_template::HashNodeSMT<blake2::Blake2b>>::test();
-    Tester::<node_template::HashNodeSMT<sha2::Sha256>>::test();
-    Tester::<node_template::HashNodeSMT<sha3::Sha3_256>>::test();
+    Tester::<node_template::SumNodeSmt>::test();
+    Tester::<node_template::HashNodeSmt<blake3::Hasher>>::test();
+    Tester::<node_template::HashNodeSmt<blake2::Blake2b>>::test();
+    Tester::<node_template::HashNodeSmt<sha2::Sha256>>::test();
+    Tester::<node_template::HashNodeSmt<sha3::Sha3_256>>::test();
 }
