@@ -24,7 +24,7 @@ pub const PADDING_STRING: &str = "padding_node";
 
 /// ======================================================================================
 
-/// A HashWires SMT node for the top accumulator that carries just a hash value.
+/// A Hash SMT node for the top accumulator that carries just a hash value.
 #[derive(Default, Clone, Debug)]
 pub struct HashNodeSmt<D> {
     hash: Vec<u8>,
