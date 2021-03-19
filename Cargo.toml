@@ -2,7 +2,7 @@
 name = "smtree"
 version = "0.1.0"
 repository = "https://github.com/novifinancial/smtree"
-keywords = ["cryptography", "accumulator", "Merkle tree", "privacy", "random sampling", "auditing", "padding", "sparse tree"]
+keywords = ["cryptography", "accumulator", "Merkle-tree", "privacy", "sampling", "auditing", "padding", "sparse-tree"]
 description = "SMTree is a flexible sparse tree accumulator that can support various tree types via traits for custom node-merging (i.e., Merkle tree hashes) and tree-padding logic. The api supports single and batch inclusion proofs and random sampling."
 authors = ["Konstantinos Chalkias <kostascrypto@fb.com>", "Yan Ji <yji@fb.com>"]
 edition = "2018"
