@@ -37,13 +37,10 @@ Now you are all prepared to build your sparse Merkle tree!
 Contributors
 ------------
 
-The authors of this code are Konstantinos Chalkias
-([@kchalkias](https://github.com/kchalkias)) and Yan Ji ([@iseriohn](https://github.com/iseriohn)).
+The original authors of this code are Konstantinos Chalkias
+([@kchalkias](https://github.com/kchalkias)) and Yan Ji ([@iseriohn](https://github.com/iseriohn)), with contributions 
+from Kevin Lewi ([@kevinlewi](https://github.com/kevinlewi)) and Irakliy Khaburzaniya ([@irakliyk](https://github.com/irakliyk)).
 To learn more about contributing to this project, [see this document](./CONTRIBUTING.md).
-
-#### Acknowledgments
-
-Special thanks go to Kevin Lewi for improving this implementation.
 
 License
 -------
