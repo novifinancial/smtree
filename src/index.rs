@@ -13,7 +13,7 @@ use rand::Rng;
 use crate::{
     error::DecodingError,
     tree::ChildDir,
-    utils::{bytes_to_usize, usize_to_bytes},
+    utils::{bytes_to_usize, tree_index_from_u32, usize_to_bytes},
 };
 
 // We store the position of each tree node in a byte array of size 32,
@@ -93,6 +93,18 @@ impl TreeIndex {
             panic!("{}", DecodingError::ExceedMaxHeight);
         }
         TreeIndex { height, path: pos }
+    }
+
+    /// Construct TreeIndex from a u32 leaf position.
+    pub fn from_u32(height: usize, pos: u32) -> TreeIndex {
+        if height > MAX_HEIGHT {
+            panic!("{}", DecodingError::ExceedMaxHeight);
+        }
+        // Check if index fits to the tree.
+        if 32 - pos.leading_zeros() > height as u32 {
+            panic!("{}", DecodingError::IndexOverflow);
+        }
+        tree_index_from_u32(height, pos)
     }
 
     /// Returns a tree index of the left-most node (all bits in the path being 0) at the given height.

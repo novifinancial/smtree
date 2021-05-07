@@ -12,6 +12,8 @@ use crate::index::MAX_HEIGHT;
 pub enum DecodingError {
     /// Decoded tree height or index height exceeds [MAX_HEIGHT]
     ExceedMaxHeight,
+    /// Provided index does not fit to the tree
+    IndexOverflow,
     /// There are more bytes than required for deserialization.
     TooManyEncodedBytes,
     /// Bytes are not enough for deserialization.
@@ -32,6 +34,9 @@ impl core::fmt::Display for DecodingError {
                     "The height exceeds the maximum height, {}, in an SMT.",
                     MAX_HEIGHT
                 )?;
+            }
+            DecodingError::IndexOverflow => {
+                write!(f, "Index Overflow")?;
             }
             DecodingError::TooManyEncodedBytes => {
                 write!(f, "Too many encoded bytes than required")?;
