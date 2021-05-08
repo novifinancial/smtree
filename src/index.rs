@@ -13,7 +13,7 @@ use rand::Rng;
 use crate::{
     error::DecodingError,
     tree::ChildDir,
-    utils::{bytes_to_usize, tree_index_from_u32, usize_to_bytes},
+    utils::{bytes_to_usize, tree_index_from_u64, usize_to_bytes},
 };
 
 // We store the position of each tree node in a byte array of size 32,
@@ -96,6 +96,10 @@ impl TreeIndex {
     }
 
     /// Construct TreeIndex from a u32 leaf position.
+    ///
+    /// Panics if:
+    /// * `height` exceeds [MAX_HEIGHT](../index/constant.MAX_HEIGHT.html).
+    /// * `pos` is not a valid leaf position in the tree of the specified `height`.
     pub fn from_u32(height: usize, pos: u32) -> TreeIndex {
         if height > MAX_HEIGHT {
             panic!("{}", DecodingError::ExceedMaxHeight);
@@ -104,7 +108,23 @@ impl TreeIndex {
         if 32 - pos.leading_zeros() > height as u32 {
             panic!("{}", DecodingError::IndexOverflow);
         }
-        tree_index_from_u32(height, pos)
+        tree_index_from_u64(height, pos as u64)
+    }
+
+    /// Construct TreeIndex from a u64 leaf position.
+    ///
+    /// Panics if:
+    /// * `height` exceeds [MAX_HEIGHT](../index/constant.MAX_HEIGHT.html).
+    /// * `pos` is not a valid leaf position in the tree of the specified `height`.
+    pub fn from_u64(height: usize, pos: u64) -> TreeIndex {
+        if height > MAX_HEIGHT {
+            panic!("{}", DecodingError::ExceedMaxHeight);
+        }
+        // Check if index fits to the tree.
+        if 64 - pos.leading_zeros() > height as u32 {
+            panic!("{}", DecodingError::IndexOverflow);
+        }
+        tree_index_from_u64(height, pos)
     }
 
     /// Returns a tree index of the left-most node (all bits in the path being 0) at the given height.
