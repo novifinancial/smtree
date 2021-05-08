@@ -126,10 +126,10 @@ pub fn generate_sorted_index_value_pairs<V: Default + Clone + Rand>(
     list
 }
 
-/// Convert a u32 to TreeIndex
-pub fn tree_index_from_u32(height: usize, _idx: u32) -> TreeIndex {
+/// Convert a u64 to TreeIndex
+pub fn tree_index_from_u64(height: usize, idx: u64) -> TreeIndex {
     let mut new_pos = [0u8; BYTE_NUM];
-    let mut idx = _idx;
+    let mut idx = idx;
     for i in (0..height).rev() {
         new_pos[i / BYTE_SIZE] += ((idx & 1) << (i % BYTE_SIZE)) as u8;
         idx >>= 1;
@@ -141,8 +141,8 @@ pub fn tree_index_from_u32(height: usize, _idx: u32) -> TreeIndex {
     since = "0.1.1",
     note = "Please use the tree_index_from_u32 function instead"
 )]
-pub fn set_pos_best(height: usize, _idx: u32) -> TreeIndex {
-    tree_index_from_u32(height, _idx)
+pub fn set_pos_best(height: usize, idx: u32) -> TreeIndex {
+    tree_index_from_u64(height, idx as u64)
 }
 
 pub fn set_pos_worst(height: usize, _idx: u32, depth: usize) -> TreeIndex {
@@ -221,7 +221,7 @@ pub fn print_output<P: Clone + Default + Mergeable + Paddable + ProofExtractable
             &internals,
         );
         for j in 1..1 << i {
-            let pos = tree_index_from_u32(i, j as u32);
+            let pos = tree_index_from_u64(i, j as u64);
             print_node(
                 1 << tree.get_height() >> (i - 1),
                 &pos,
