@@ -330,7 +330,7 @@ where
         self.get_nodes_of_type(NodeType::Internal)
     }
 
-    // Add a new child to the input parent node.
+    /// Add a new child to the input parent node.
     fn add_child(&mut self, parent: usize, dir: ChildDir) {
         let mut node: TreeNode<P> = TreeNode::new(NodeType::Internal);
         node.set_parent(parent); // Link the parent to the child node.
@@ -348,25 +348,25 @@ where
         }
     }
 
-    // Add a left child to the input parent node.
+    /// Add a left child to the input parent node.
     fn add_lch(&mut self, parent: usize) {
         self.add_child(parent, ChildDir::Left);
     }
 
-    // Add a right child to the input parent node.
+    /// Add a right child to the input parent node.
     fn add_rch(&mut self, parent: usize) {
         self.add_child(parent, ChildDir::Right);
     }
 
-    // Add a new node in the node list with the input node type and value,
-    // and return the reference to the new node.
+    /// Add a new node in the node list with the input node type and value,
+    /// and return the reference to the new node.
     fn add_node(&mut self, node_type: NodeType) -> usize {
         let node = TreeNode::new(node_type);
         self.nodes.push(node);
         self.nodes.len() - 1
     }
 
-    // Set references to child nodes and the value as the merging result of two child nodes.
+    /// Set references to child nodes and the value as the merging result of two child nodes.
     fn set_children(&mut self, parent: &mut TreeNode<P>, lref: usize, rref: usize) {
         parent.set_lch(lref);
         parent.set_rch(rref);
@@ -530,8 +530,8 @@ where
         }
     }
 
-    // Retrieve the path from the root to the input leaf node.
-    // If there is any node on the path or its sibling not existing yet, add it to the tree.
+    /// Retrieve the path from the root to the input leaf node.
+    /// If there is any node on the path or its sibling not existing yet, add it to the tree.
     fn retrieve_path(&mut self, key: &TreeIndex) -> Vec<usize> {
         let mut vec: Vec<usize> = Vec::new();
 
@@ -718,7 +718,7 @@ where
         Some(leaves) // Some([leaf, ..., leaf, sibling, ..., sibling])
     }
 
-    // Returns the tree index of closest left/right (depending on input direction) node in the tree.
+    /// Returns the tree index of closest left/right (depending on input direction) node in the tree.
     pub fn get_closest_index_by_dir(
         &self,
         ancestor_ref: usize,

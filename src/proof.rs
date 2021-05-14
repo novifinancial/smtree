@@ -20,11 +20,11 @@ use crate::{
     utils::{bytes_to_usize, usize_to_bytes, Nil},
 };
 
-// The number of bytes for encoding the batch num in a Merkle proof.
+/// The number of bytes for encoding the batch num in a Merkle proof.
 const BATCH_NUM_BYTE_NUM: usize = 8;
-// The number of bytes for encoding the sibling num in a Merkle proof.
+/// The number of bytes for encoding the sibling num in a Merkle proof.
 const SIBLING_NUM_BYTE_NUM: usize = 8;
-// The number of bytes for encoding the padding num in a padding node proof.
+/// The number of bytes for encoding the padding num in a padding node proof.
 const PADDING_NUM_BYTE_NUM: usize = 2;
 
 /// A proof depicts a Merkle path.
@@ -64,6 +64,7 @@ where
         }
     }
 
+    /// Returns the number indexes in this proof.
     pub fn get_batch_num(&self) -> usize {
         self.indexes.len()
     }
