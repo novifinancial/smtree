@@ -265,7 +265,7 @@ impl TreeIndex {
         self.get_prefix(self.height - 1)
     }
 
-    // Returns the number of bytes for encoding the bit array by the number of bits.
+    /// Returns the number of bytes for encoding the bit array by the number of bits.
     fn get_byte_num_by_bit(bit_num: usize) -> usize {
         let mut byte_num = bit_num / BYTE_SIZE;
         if bit_num % BYTE_SIZE > 0 {
@@ -274,7 +274,7 @@ impl TreeIndex {
         byte_num
     }
 
-    // Returns the left/right index to the input index, direction depending on the input.
+    /// Returns the left/right index to the input index, direction depending on the input.
     fn get_dir_index(&self, dir: ChildDir) -> Option<TreeIndex> {
         let mut opp_dir = ChildDir::Left;
         let mut dir_bit = 1;

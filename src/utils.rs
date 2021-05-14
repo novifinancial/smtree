@@ -21,6 +21,8 @@ use crate::{
 const BYTE_SIZE: usize = 8;
 const BYTE_NUM: usize = MAX_HEIGHT / BYTE_SIZE;
 
+// NIL NODE STRUCT
+// ================================================================================================
 /// A Nil SMT node.
 #[derive(Default, Clone, Debug)]
 pub struct Nil;
@@ -61,6 +63,12 @@ impl ProofExtractable for Nil {
     }
 }
 
+// PUBLIC UTILITY FUNCTIONS
+// ================================================================================================
+
+/// Converts the provided `num` into the specified number of bytes in little-endian byte order.
+///
+/// Panics if the specified number of bytes is not sufficient to encode `num`.
 pub fn usize_to_bytes(num: usize, byte_num: usize) -> Vec<u8> {
     let mut vec: Vec<u8> = Vec::new();
     let mut tmp = num;
@@ -72,12 +80,14 @@ pub fn usize_to_bytes(num: usize, byte_num: usize) -> Vec<u8> {
         panic!("Error when encoding usize to bytes: number of bytes exceeds the input limit.");
     }
 
-    for _i in vec.len()..byte_num {
+    for _ in vec.len()..byte_num {
         vec.push(0u8);
     }
     vec
 }
 
+/// Reads `byte_num` bytes from `bytes` slice starting at `begin` index and interprets them
+/// as a usize in little-ending byte order.
 pub fn bytes_to_usize(
     bytes: &[u8],
     byte_num: usize,
@@ -100,6 +110,8 @@ pub fn bytes_to_usize(
     Ok(num)
 }
 
+/// Generates a set of random pairs of tree indexes and values. The function intended for use
+/// in testing and benchmarking code.
 pub fn generate_sorted_index_value_pairs<V: Default + Clone + Rand>(
     height: usize,
     leaf_num: usize,
@@ -126,7 +138,7 @@ pub fn generate_sorted_index_value_pairs<V: Default + Clone + Rand>(
     list
 }
 
-/// Convert a u64 to TreeIndex
+/// Convert a u64 to TreeIndex.
 pub fn tree_index_from_u64(height: usize, idx: u64) -> TreeIndex {
     let mut new_pos = [0u8; BYTE_NUM];
     let mut idx = idx;
@@ -139,15 +151,15 @@ pub fn tree_index_from_u64(height: usize, idx: u64) -> TreeIndex {
 
 #[deprecated(
     since = "0.1.1",
-    note = "Please use the tree_index_from_u32 function instead"
+    note = "Please use the tree_index_from_u64 function instead"
 )]
 pub fn set_pos_best(height: usize, idx: u32) -> TreeIndex {
     tree_index_from_u64(height, idx as u64)
 }
 
-pub fn set_pos_worst(height: usize, _idx: u32, depth: usize) -> TreeIndex {
+#[deprecated(since = "0.1.1")]
+pub fn set_pos_worst(height: usize, mut idx: u32, depth: usize) -> TreeIndex {
     let mut new_pos = [0u8; BYTE_NUM];
-    let mut idx = _idx;
     for i in (0..depth).rev() {
         new_pos[i / BYTE_SIZE] += ((idx & 1) << (i % BYTE_SIZE)) as u8;
         idx >>= 1;
@@ -157,18 +169,8 @@ pub fn set_pos_worst(height: usize, _idx: u32, depth: usize) -> TreeIndex {
 
 type Set = HashSet<TreeIndex>;
 
-fn print_node(spaces: usize, idx: &TreeIndex, leaves: &Set, paddings: &Set, internals: &Set) {
-    if leaves.contains(idx) {
-        print!("{:>1$}", "*", spaces);
-    } else if paddings.contains(idx) {
-        print!("{:>1$}", "o", spaces);
-    } else if internals.contains(idx) {
-        print!("{:>1$}", "^", spaces);
-    } else {
-        print!("{:>1$}", ".", spaces);
-    }
-}
-
+/// Prints out the structure of the provided `tree`, which makes it visually easy to see the
+/// placement of leaf, padding, and internal nodes.
 pub fn print_output<P: Clone + Default + Mergeable + Paddable + ProofExtractable>(
     tree: &SparseMerkleTree<P>,
 ) where
@@ -231,5 +233,20 @@ pub fn print_output<P: Clone + Default + Mergeable + Paddable + ProofExtractable
             );
         }
         println!();
+    }
+}
+
+// HELPER FUNCTIONS
+// ================================================================================================
+
+fn print_node(spaces: usize, idx: &TreeIndex, leaves: &Set, paddings: &Set, internals: &Set) {
+    if leaves.contains(idx) {
+        print!("{:>1$}", "*", spaces);
+    } else if paddings.contains(idx) {
+        print!("{:>1$}", "o", spaces);
+    } else if internals.contains(idx) {
+        print!("{:>1$}", "^", spaces);
+    } else {
+        print!("{:>1$}", ".", spaces);
     }
 }
