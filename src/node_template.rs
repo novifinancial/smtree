@@ -292,6 +292,101 @@ impl<D: TypeName> TypeName for HashWiresNodeSmt<D> {
 
 /// ======================================================================================
 
+/// A hash Merkle tree node for the top accumulator that carries just a hash value.
+#[derive(Default, Clone, Debug)]
+pub struct MTreeNodeSmt<D> {
+    hash: Vec<u8>,
+    phantom: PhantomData<D>,
+}
+
+impl<D> MTreeNodeSmt<D> {
+    pub fn new(hash: Vec<u8>) -> MTreeNodeSmt<D> {
+        MTreeNodeSmt {
+            hash,
+            phantom: PhantomData,
+        }
+    }
+}
+
+impl<D> PartialEq for MTreeNodeSmt<D> {
+    fn eq(&self, other: &Self) -> bool {
+        self.hash == other.hash
+    }
+}
+
+impl<D> Eq for MTreeNodeSmt<D> {}
+
+impl<D: Digest> Mergeable for MTreeNodeSmt<D> {
+    fn merge(lch: &MTreeNodeSmt<D>, rch: &MTreeNodeSmt<D>) -> MTreeNodeSmt<D> {
+        let mut hasher = D::new();
+        hasher.update(&lch.hash);
+        hasher.update(&rch.hash);
+        MTreeNodeSmt::new(hasher.finalize().to_vec())
+    }
+}
+
+impl<D: Digest> Paddable for MTreeNodeSmt<D> {
+    fn padding(_idx: &TreeIndex, _secret: &Secret) -> MTreeNodeSmt<D> {
+        MTreeNodeSmt::new(vec![0u8; D::output_size()])
+    }
+}
+
+impl<D: Digest> Serializable for MTreeNodeSmt<D> {
+    fn serialize(&self) -> Vec<u8> {
+        (&self.hash).clone()
+    }
+
+    fn deserialize_as_a_unit(bytes: &[u8], begin: &mut usize) -> Result<Self, DecodingError> {
+        if bytes.len() - *begin < D::output_size() {
+            return Err(DecodingError::BytesNotEnough);
+        }
+        let item = Self::new(bytes[*begin..*begin + D::output_size()].to_vec());
+        *begin += D::output_size();
+        Ok(item)
+    }
+}
+
+impl<D: Clone> ProofExtractable for MTreeNodeSmt<D> {
+    type ProofNode = MTreeNodeSmt<D>;
+    fn get_proof_node(&self) -> Self::ProofNode {
+        self.clone()
+    }
+}
+
+impl<D: Clone + Digest> PaddingProvable for MTreeNodeSmt<D> {
+    type PaddingProof = MTreeNodeSmt<D>;
+
+    fn prove_padding_node(&self, _idx: &TreeIndex, _secret: &Secret) -> MTreeNodeSmt<D> {
+        MTreeNodeSmt::new(vec![0u8; D::output_size()])
+    }
+
+    fn verify_padding_node(
+        node: &<Self as ProofExtractable>::ProofNode,
+        _proof: &Self::PaddingProof,
+        _idx: &TreeIndex,
+    ) -> bool {
+        *node == MTreeNodeSmt::new(vec![0u8; D::output_size()])
+    }
+}
+
+impl<D: Digest> Rand for MTreeNodeSmt<D> {
+    fn randomize(&mut self) {
+        *self = MTreeNodeSmt::new(vec![0u8; D::output_size()]);
+        let mut rng = rand::thread_rng();
+        for item in &mut self.hash {
+            *item = rng.gen();
+        }
+    }
+}
+
+impl<D: TypeName> TypeName for MTreeNodeSmt<D> {
+    fn get_name() -> String {
+        format!("Hash ({})", D::get_name())
+    }
+}
+
+/// ======================================================================================
+
 impl TypeName for blake3::Hasher {
     fn get_name() -> String {
         "Blake3".to_owned()
