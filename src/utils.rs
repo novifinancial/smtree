@@ -78,10 +78,8 @@ pub fn usize_to_bytes(num: usize, byte_num: usize) -> Vec<u8> {
     }
     if vec.len() > byte_num {
         panic!("Error when encoding usize to bytes: number of bytes exceeds the input limit.");
-    }
-
-    for _ in vec.len()..byte_num {
-        vec.push(0u8);
+    } else {
+        vec.resize(byte_num, 0u8)
     }
     vec
 }
@@ -249,4 +247,14 @@ fn print_node(spaces: usize, idx: &TreeIndex, leaves: &Set, paddings: &Set, inte
     } else {
         print!("{:>1$}", ".", spaces);
     }
+}
+
+const fn num_bits<T>() -> usize {
+    std::mem::size_of::<T>() * 8
+}
+
+pub(crate) fn log_2(x: u32) -> u32 {
+    let offset = if x.is_power_of_two() { 1 } else { 0 };
+    assert!(x > 0);
+    num_bits::<u32>() as u32 - x.leading_zeros() - offset
 }

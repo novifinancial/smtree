@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2 (Oct 18, 2021)
+
+* Added `new_merkle_tree` helper constructor to simulate regular Merkle trees.
+
 ## 0.1.1 (May 14, 2021)
 
 * Deprecated `utils::set_pos_best()` and `utils::set_pos_worst()` functions.

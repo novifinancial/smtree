@@ -13,7 +13,7 @@ use crate::{
     error::{DecodingError, TreeError},
     index::{TreeIndex, MAX_HEIGHT},
     traits::{Mergeable, Paddable, ProofExtractable, Serializable},
-    utils::Nil,
+    utils::{log_2, Nil},
 };
 
 /// The direction of a child node, either left or right.
@@ -165,6 +165,16 @@ where
             root: 0,
             nodes: vec![root_node],
         }
+    }
+
+    /// A simple Merkle tree constructor, where all items are added next to each other from left to
+    /// right. Note that zero padding secret is used and the height depends on the input list size.
+    /// Use this helper constructor only when simulating a plain Merkle tree.
+    pub fn new_merkle_tree(list: &[P]) -> SparseMerkleTree<P> {
+        let height = log_2(list.len() as u32) as usize;
+        let mut smtree = Self::new(height);
+        smtree.build_merkle_tree_zero_padding(list);
+        smtree
     }
 
     /// Returns the height of the SMT.
@@ -526,6 +536,20 @@ where
     /// Panics if the input list is not valid.
     pub fn build(&mut self, list: &[(TreeIndex, P)], secret: &Secret) {
         if let Some(x) = self.construct_smt_nodes(list, secret) {
+            panic!("{}", x);
+        }
+    }
+
+    /// Build simple Merkle tree from the input list with zero padding secret.
+    ///
+    /// Panics if the input list is not valid.
+    fn build_merkle_tree_zero_padding(&mut self, list: &[P]) {
+        let tree_list: Vec<(TreeIndex, P)> = list
+            .iter()
+            .enumerate()
+            .map(|(index, p)| (TreeIndex::from_u64(self.height, index as u64), p.clone()))
+            .collect();
+        if let Some(x) = self.construct_smt_nodes(&tree_list, &ALL_ZEROS_SECRET) {
             panic!("{}", x);
         }
     }

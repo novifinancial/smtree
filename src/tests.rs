@@ -17,7 +17,7 @@ use crate::{
         RandomSampleable, Serializable, TypeName,
     },
     tree::SparseMerkleTree,
-    utils::generate_sorted_index_value_pairs,
+    utils::{generate_sorted_index_value_pairs, print_output},
 };
 
 type SMT<P> = SparseMerkleTree<P>;
@@ -253,4 +253,11 @@ fn test_smt() {
     Tester::<node_template::HashNodeSmt<blake2::Blake2b>>::test();
     Tester::<node_template::HashNodeSmt<sha2::Sha256>>::test();
     Tester::<node_template::HashNodeSmt<sha3::Sha3_256>>::test();
+}
+
+#[test]
+fn test_merkle_tree() {
+    let list: Vec<HashNodeSmt<blake3::Hasher>> = vec![HashNodeSmt::default(); 5];
+    let tree = SMT::<HashNodeSmt<blake3::Hasher>>::new_merkle_tree(&list);
+    print_output(&tree);
 }
