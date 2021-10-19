@@ -257,7 +257,28 @@ fn test_smt() {
 
 #[test]
 fn test_merkle_tree() {
-    let list: Vec<HashNodeSmt<blake3::Hasher>> = vec![HashNodeSmt::default(); 5];
+    let example_leaf = HashNodeSmt::new(vec![0; 32]);
+    let list: Vec<HashNodeSmt<blake3::Hasher>> = vec![example_leaf.clone(); 5];
     let tree = SMT::<HashNodeSmt<blake3::Hasher>>::new_merkle_tree(&list);
+    assert_eq!(tree.get_height(), 3); // starting from zero
+    assert_eq!(tree.get_paddings().len(), 2);
+
+    // Add a single index in the proof generation (we prove one element only)
+    let index_list = vec![TreeIndex::from_u64(tree.get_height(), 2)];
+
+    let proof =
+        MerkleProof::<HashNodeSmt<blake3::Hasher>>::generate_inclusion_proof(&tree, &index_list)
+            .unwrap();
+    assert_eq!(proof.verify(&example_leaf, &tree.get_root()), true);
+
+    let serialized_proof = proof.serialize();
+    let deserialized_proof =
+        MerkleProof::<HashNodeSmt<blake3::Hasher>>::deserialize(&serialized_proof).unwrap();
+    assert_eq!(serialized_proof, deserialized_proof.serialize());
+    assert_eq!(
+        deserialized_proof.verify(&example_leaf, &tree.get_root()),
+        true
+    );
+
     print_output(&tree);
 }
