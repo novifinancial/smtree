@@ -6,7 +6,7 @@
 use std::fmt::Debug;
 use std::marker::PhantomData;
 
-use crate::node_template::{HashNodeSmt, SumNodeSmt};
+use crate::node_template::{HashNodeSmt, MTreeNodeSmt, SumNodeSmt};
 use crate::pad_secret::ALL_ZEROS_SECRET;
 use crate::{
     index::{TreeIndex, MAX_HEIGHT},
@@ -257,9 +257,9 @@ fn test_smt() {
 
 #[test]
 fn test_merkle_tree() {
-    let example_leaf = HashNodeSmt::new(vec![0; 32]);
-    let list: Vec<HashNodeSmt<blake3::Hasher>> = vec![example_leaf.clone(); 5];
-    let tree = SMT::<HashNodeSmt<blake3::Hasher>>::new_merkle_tree(&list);
+    let example_leaf = MTreeNodeSmt::new(vec![0; 32]);
+    let list: Vec<MTreeNodeSmt<blake3::Hasher>> = vec![example_leaf.clone(); 5];
+    let tree = SMT::<MTreeNodeSmt<blake3::Hasher>>::new_merkle_tree(&list);
     assert_eq!(tree.get_height(), 3); // starting from zero
     assert_eq!(tree.get_paddings().len(), 2);
 
@@ -267,13 +267,13 @@ fn test_merkle_tree() {
     let index_list = vec![TreeIndex::from_u64(tree.get_height(), 2)];
 
     let proof =
-        MerkleProof::<HashNodeSmt<blake3::Hasher>>::generate_inclusion_proof(&tree, &index_list)
+        MerkleProof::<MTreeNodeSmt<blake3::Hasher>>::generate_inclusion_proof(&tree, &index_list)
             .unwrap();
     assert_eq!(proof.verify(&example_leaf, &tree.get_root()), true);
 
     let serialized_proof = proof.serialize();
     let deserialized_proof =
-        MerkleProof::<HashNodeSmt<blake3::Hasher>>::deserialize(&serialized_proof).unwrap();
+        MerkleProof::<MTreeNodeSmt<blake3::Hasher>>::deserialize(&serialized_proof).unwrap();
     assert_eq!(serialized_proof, deserialized_proof.serialize());
     assert_eq!(
         deserialized_proof.verify(&example_leaf, &tree.get_root()),
