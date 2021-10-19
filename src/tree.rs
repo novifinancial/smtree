@@ -9,6 +9,7 @@
 use std::fmt::Debug;
 
 use crate::pad_secret::{Secret, ALL_ZEROS_SECRET};
+use crate::utils::tree_index_from_u64;
 use crate::{
     error::{DecodingError, TreeError},
     index::{TreeIndex, MAX_HEIGHT},
@@ -547,7 +548,7 @@ where
         let tree_list: Vec<(TreeIndex, P)> = list
             .iter()
             .enumerate()
-            .map(|(index, p)| (TreeIndex::from_u64(self.height, index as u64), p.clone()))
+            .map(|(index, p)| (tree_index_from_u64(self.height, index as u64), p.clone()))
             .collect();
         if let Some(x) = self.construct_smt_nodes(&tree_list, &ALL_ZEROS_SECRET) {
             panic!("{}", x);
